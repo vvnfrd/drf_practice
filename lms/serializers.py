@@ -10,6 +10,17 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CourseDetailSerializer(serializers.ModelSerializer):
+    lessons_quantity = serializers.SerializerMethodField()
+
+    def get_lessons_quantity(self, course):
+        return Lesson.objects.filter(course_id=course.id).count()
+
+    class Meta:
+        model = Course
+        fields = ('title', 'preview', 'description', 'lessons_quantity')
+
+
 class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
