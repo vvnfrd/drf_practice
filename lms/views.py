@@ -1,6 +1,8 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, permissions
+from rest_framework.permissions import IsAuthenticated
 
 from lms.models import Course, Lesson
+from users.permissions import IsNotModerator
 from lms.serializers import CourseSerializer, LessonSerializer, CourseDetailSerializer
 
 """CRUD Course"""
@@ -21,6 +23,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class LessonCreateAPIView(generics.CreateAPIView):
     serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticated, IsNotModerator]
 
 
 class LessonListAPIView(generics.ListAPIView):
@@ -40,3 +43,4 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
     queryset = Lesson.objects.all()
+    permission_classes = [IsAuthenticated, IsNotModerator]
