@@ -6,3 +6,9 @@ class IsNotModerator(BasePermission):
     def has_permission(self, request, view):
         if not request.user.groups.filter(name='moderator').exists():
             return True
+
+
+class IsOwner(BasePermission):
+
+    def has_permission(self, request, view):
+        return request.user == view.get_object().author
