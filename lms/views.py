@@ -1,4 +1,4 @@
-from rest_framework import generics, viewsets, permissions
+from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from lms.models import Course, Lesson
@@ -9,7 +9,6 @@ from lms.serializers import CourseSerializer, LessonSerializer, CourseDetailSeri
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    # serializer_class = CourseSerializer
     queryset = Course.objects.all()
 
     def get_serializer_class(self):
@@ -24,6 +23,11 @@ class CourseViewSet(viewsets.ModelViewSet):
 class LessonCreateAPIView(generics.CreateAPIView):
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated, IsNotModerator]
+
+    def perform_create(self, serializer):
+        new_lesson = serializer.save()
+        new_lesson.author = self.request.user
+        new_lesson.save()
 
 
 class LessonListAPIView(generics.ListAPIView):
