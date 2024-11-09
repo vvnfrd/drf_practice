@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'django_filters',
     'rest_framework',
+    'django_dump_load_utf8',
 
     'users',
     'lms',
