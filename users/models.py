@@ -18,6 +18,9 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def __str__(self):
+        return f'{self.email}'
+
     class Meta:
         verbose_name = 'пользователь'
         verbose_name_plural = 'пользователи'
@@ -31,6 +34,21 @@ class Payment(models.Model):
     value = models.PositiveIntegerField(verbose_name='сумма оплаты')
     method = models.CharField(max_length=50, verbose_name='метод оплаты')
 
+    def __str__(self):
+        return f'{self.user} {self.date} {self.value}'
+
     class Meta:
         verbose_name = 'платёж'
         verbose_name_plural = 'платежи'
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь')
+    course_id = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс')
+
+    def __str__(self):
+        return f'{self.user.email} course_id: {self.course_id}'
+
+    class Meta:
+        verbose_name = 'подписка'
+        verbose_name_plural = 'подписки'

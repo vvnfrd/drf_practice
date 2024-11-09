@@ -10,6 +10,9 @@ class Course(models.Model):
     description = models.TextField(verbose_name='описание')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор', **NULLABLE)
 
+    def __str__(self):
+        return f'Курс {self.title}'
+
     class Meta:
         verbose_name = 'курс'
         verbose_name_plural = 'курсы'
@@ -22,6 +25,9 @@ class Lesson(models.Model):
     video_url = models.URLField(verbose_name='ссылка на видео', **NULLABLE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор', **NULLABLE)
+
+    def __str__(self):
+        return f'Урок {self.title}'
 
     class Meta:
         verbose_name = 'урок'
