@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from lms.models import Course, Lesson
+from lms.paginators import StudyPaginator
 from users.permissions import IsNotModerator, IsOwner
 from lms.serializers import CourseSerializer, LessonSerializer, CourseDetailSerializer
 
@@ -13,6 +14,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     request = {}
     user = {}
     queryset = Course.objects.all()
+    pagination_class = StudyPaginator
 
     """Оформляю всятие реквеста для каждого CRUD вьюсета"""
 
@@ -95,6 +97,7 @@ class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = StudyPaginator
 
     def get(self, request, *args, **kwargs):
         self.request = request
