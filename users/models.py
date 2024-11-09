@@ -45,7 +45,6 @@ class Payment(models.Model):
 class Subscription(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь')
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс')
-    active = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.user.email} course_id: {self.course_id}'
