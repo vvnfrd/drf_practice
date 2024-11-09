@@ -1,5 +1,5 @@
 from rest_framework import generics, viewsets, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from lms.models import Course, Lesson
@@ -83,12 +83,16 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class LessonCreateAPIView(generics.CreateAPIView):
     serializer_class = LessonSerializer
-    permission_classes = [IsAuthenticated, IsNotModerator]
+    # permission_classes = [IsAuthenticated, IsNotModerator]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
-        new_lesson = serializer.save()
-        new_lesson.author = self.request.user
-        new_lesson.save()
+        try:
+            new_lesson = serializer.save()
+            new_lesson.author = self.request.user
+            new_lesson.save()
+        except ValueError:
+            pass
 
 
 class LessonListAPIView(generics.ListAPIView):
@@ -96,7 +100,8 @@ class LessonListAPIView(generics.ListAPIView):
     user = {}
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     pagination_class = StudyPaginator
 
     def get(self, request, *args, **kwargs):
@@ -124,5 +129,6 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
+    serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsAuthenticated, IsNotModerator, IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner | IsAdminUser]

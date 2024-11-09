@@ -8,6 +8,5 @@ class VideoUrlValidator:
     def __call__(self, value):
         # reg = re.compile('youtube')
         tmp_val = dict(value).get(self.field)
-        # print('youtube' in tmp_val or 'youtu.be' in tmp_val)
         if not 'youtube' in tmp_val or 'youtu.be' in tmp_val:
             raise ValidationError('Поддерживаются ссылки только с youtube.com')
