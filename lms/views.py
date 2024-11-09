@@ -49,7 +49,6 @@ class CourseViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         self.request = request
         self.user = request.user
-        print(request.user.is_superuser)
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
