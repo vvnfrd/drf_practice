@@ -83,8 +83,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class LessonCreateAPIView(generics.CreateAPIView):
     serializer_class = LessonSerializer
-    # permission_classes = [IsAuthenticated, IsNotModerator]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsNotModerator]
 
     def perform_create(self, serializer):
         try:
@@ -100,8 +99,7 @@ class LessonListAPIView(generics.ListAPIView):
     user = {}
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    # permission_classes = [IsAuthenticated]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     pagination_class = StudyPaginator
 
     def get(self, request, *args, **kwargs):
@@ -131,4 +129,6 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
 class LessonDestroyAPIView(generics.DestroyAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner | IsAdminUser]
+    # permission_classes = [IsAuthenticated, IsOwner | IsAdminUser]
+    # permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsOwner|IsAdminUser]
