@@ -19,6 +19,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     """Оформляю всятие реквеста для каждого CRUD вьюсета"""
 
     def destroy(self, request, *args, **kwargs):
+        """Delete course"""
         self.request = request
         self.user = request.user
         instance = self.get_object()
@@ -26,6 +27,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def retrieve(self, request, *args, **kwargs):
+        """Check info about course"""
         self.request = request
         self.user = request.user
         instance = self.get_object()
@@ -33,6 +35,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
+        """Update course"""
         self.request = request
         self.user = request.user
         partial = kwargs.pop('partial', False)
@@ -48,7 +51,13 @@ class CourseViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    def partial_update(self, request, *args, **kwargs):
+        """Partial update course"""
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
     def list(self, request, *args, **kwargs):
+        """Get list of courses"""
         self.request = request
         self.user = request.user
         queryset = self.filter_queryset(self.get_queryset())
@@ -72,16 +81,22 @@ class CourseViewSet(viewsets.ModelViewSet):
         return CourseSerializer
 
     def get_queryset(self):
-        if self.user.is_superuser or self.user.groups.filter(name='moderator').exists():
-            return Course.objects.all()
-        else:
-            return Course.objects.filter(author=self.request.user)
+        try:
+            print(self.user.__dict__)
+            if self.user.is_superuser or self.user.groups.filter(name='moderator').exists():
+                return Course.objects.all()
+            else:
+                return Course.objects.filter(author=self.request.user)
+        except AttributeError:
+            """fix for swagger"""
+            return []
 
 
 """CRUD Lesson"""
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
+    """Create a lesson"""
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated, IsNotModerator]
 
@@ -95,6 +110,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
 
 
 class LessonListAPIView(generics.ListAPIView):
+    """Get lesson's list"""
     request = {}
     user = {}
     serializer_class = LessonSerializer
@@ -115,18 +131,21 @@ class LessonListAPIView(generics.ListAPIView):
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
+    """Get detail info about lesson"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
+    """Update lesson"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
+    """Delete lesson"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # permission_classes = [IsAuthenticated, IsOwner | IsAdminUser]

@@ -18,6 +18,7 @@ from django.views.generic import CreateView, UpdateView, ListView, DetailView
 
 
 class PaymentListAPIView(generics.ListAPIView):
+    """Get list of payment"""
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -30,6 +31,7 @@ class PaymentListAPIView(generics.ListAPIView):
 
 
 class RegisterAPIView(generics.CreateAPIView):
+    """Register account"""
     serializer_class = RegisterSerializer
     queryset = User.objects.all()
 
@@ -53,6 +55,7 @@ class SubscriptionAPIView(generics.CreateAPIView, generics.ListAPIView):
     queryset = Subscription.objects.all()
 
     def post(self, request, *args, **kwargs):
+        """Create or delete subscription"""
         try:
             user = self.request.user
             course_id = self.request.data['course_id']
@@ -70,6 +73,7 @@ class SubscriptionAPIView(generics.CreateAPIView, generics.ListAPIView):
             return Response({"Необходимые параметры": "course_id"})
 
     def get(self, request, *args, **kwargs):
+        """Get list of subscription"""
         self.request = request
         self.user = request.user
         return self.list(request, *args, **kwargs)
@@ -79,18 +83,3 @@ class SubscriptionAPIView(generics.CreateAPIView, generics.ListAPIView):
             return Subscription.objects.all()
         else:
             return Subscription.objects.filter(user=self.request.user)
-
-
-# """Сервис менеджера"""
-
-
-# class UserListView(ListView):
-#     model = User
-#
-#
-# class UserDetailView(DetailView):
-#     model = User
-#
-#
-# class UserUpdateView(UpdateView):
-#     model = User
