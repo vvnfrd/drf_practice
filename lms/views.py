@@ -1,11 +1,13 @@
 from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-
+import stripe
 from lms.models import Course, Lesson
 from lms.paginators import StudyPaginator
+from lms.services import stripe_create_product, stripe_create_price
 from users.permissions import IsNotModerator, IsOwner
-from lms.serializers import CourseSerializer, LessonSerializer, CourseDetailSerializer
+from lms.serializers import CourseSerializer, LessonSerializer, CourseDetailSerializer, CourseDetailOwnerSerializer, \
+    LessonOwnerSerializer
 
 """CRUD Course"""
 
@@ -77,12 +79,13 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
+            if self.user == self.get_object().author:
+                return CourseDetailOwnerSerializer
             return CourseDetailSerializer
         return CourseSerializer
 
     def get_queryset(self):
         try:
-            print(self.user.__dict__)
             if self.user.is_superuser or self.user.groups.filter(name='moderator').exists():
                 return Course.objects.all()
             else:
@@ -136,6 +139,10 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
 
+    def get_serializer_class(self):
+        if self.request.user == self.get_object().author:
+            return LessonOwnerSerializer
+
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
     """Update lesson"""
@@ -151,3 +158,82 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     # permission_classes = [IsAuthenticated, IsOwner | IsAdminUser]
     # permission_classes = [AllowAny]
     permission_classes = [IsAuthenticated, IsOwner|IsAdminUser]
+
+class StripeCreateCourseAPIView(generics.GenericAPIView):
+    serializer_class = CourseSerializer
+    queryset = Course.objects.all()
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author == self.request.user:
+            response = Response(stripe_create_product(
+                name=instance.title,
+                description=instance.description
+            ))
+            instance.product_id = response.data['id']
+            instance.save()
+            return response
+        else:
+            return Response(data={"message": "You are not owner of this course"})
+
+
+class StripeCreateLessonAPIView(generics.GenericAPIView):
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author == self.request.user:
+
+            return Response(stripe_create_product(
+                name=instance.title,
+                description=instance.description
+            ))
+        else:
+            return Response(data={"message": "You are not owner of this lesson"})
+
+
+class StripeSetPriceCourseAPIView(generics.GenericAPIView):
+    serializer_class = CourseSerializer
+    queryset = Course.objects.all()
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            if instance.author == self.request.user:
+                usd_price = request.data['usd_price']
+                product_id = request.data['product_id']
+                stripe_create_price(
+                    usd_price=usd_price,
+                    product_id=product_id
+                )
+                return Response(data={"message": "The price has been set"})
+            else:
+                return Response(data={"message": "The price has been set"})
+        except KeyError:
+            return Response(data={"usd_price": "Required field", "product_id": "Required field"})
+
+
+class StripeSetPriceLessonAPIView(generics.GenericAPIView):
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            if instance.author == self.request.user:
+                usd_price = request.data['usd_price']
+                product_id = request.data['product_id']
+                stripe_create_price(
+                    usd_price=usd_price,
+                    product_id=product_id
+                )
+                return Response(data={"message": "The price has been set"})
+            else:
+                return Response(data={"message": "The price has been set"})
+        except KeyError:
+            return Response(data={"usd_price": "Required field", "product_id": "Required field"})

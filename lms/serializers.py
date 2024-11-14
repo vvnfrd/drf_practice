@@ -10,7 +10,14 @@ from users.serializers import SubscriptionSerializer
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = '__all__'
+        fields = ('id', 'title', 'description', 'preview', 'video_url', 'course_id', 'author')
+        validators = [VideoUrlValidator(field="video_url")]
+
+
+class LessonOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ('id', 'title', 'description', 'preview', 'video_url', 'course_id', 'author', 'product_id')
         validators = [VideoUrlValidator(field="video_url")]
 
 
@@ -24,7 +31,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ('id', 'title', 'preview', 'description', 'author', 'subscription')
+        fields = ('id', 'title', 'preview', 'description', 'author', 'subscription', 'product_id')
 
 
 class CourseDetailSerializer(serializers.ModelSerializer):
@@ -38,6 +45,18 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     def get_lessons_quantity(self, course):
         return Lesson.objects.filter(course_id=course.id).count()
 
+
     class Meta:
         model = Course
+
         fields = ('title', 'preview', 'description', 'lessons_quantity', 'author', 'subscription', 'lessons')
+
+
+class CourseDetailOwnerSerializer(CourseDetailSerializer):
+
+    class Meta:
+        model = Course
+
+        fields = (
+        'title', 'preview', 'description', 'lessons_quantity', 'author', 'subscription', 'product_id', 'lessons')
+

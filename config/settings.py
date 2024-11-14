@@ -145,3 +145,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     )
 }
+
+STRIPE_API_KEY = 'sk_test_51QJawyGThucpgbejbCSDzTWi1mQNLevaRameij89Cw84lSZzDNJufUCUmEF4uOIZCzVtrD0pkAkxJnTDsC3Q4ik600PAK8g57b'
