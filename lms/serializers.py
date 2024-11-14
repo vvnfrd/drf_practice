@@ -10,7 +10,7 @@ from users.serializers import SubscriptionSerializer
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = ('id', 'title', 'description', 'preview', 'video_url', 'course_id', 'author')
+        fields = ('id', 'title', 'description', 'preview', 'video_url', 'course_id', 'author', 'usd_price')
         validators = [VideoUrlValidator(field="video_url")]
 
 
@@ -31,7 +31,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ('id', 'title', 'preview', 'description', 'author', 'subscription', 'product_id')
+        fields = ('id', 'title', 'preview', 'description', 'author', 'subscription', 'product_id', 'usd_price')
 
 
 class CourseDetailSerializer(serializers.ModelSerializer):
@@ -49,7 +49,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
 
-        fields = ('title', 'preview', 'description', 'lessons_quantity', 'author', 'subscription', 'lessons')
+        fields = ('title', 'preview', 'description', 'lessons_quantity', 'author', 'subscription', 'usd_price', 'lessons')
 
 
 class CourseDetailOwnerSerializer(CourseDetailSerializer):

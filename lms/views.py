@@ -160,7 +160,9 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     # permission_classes = [AllowAny]
     permission_classes = [IsAuthenticated, IsOwner|IsAdminUser]
 
+
 class StripeCreateCourseAPIView(generics.GenericAPIView):
+    """Эндпоинт создания продукта"""
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
@@ -180,6 +182,7 @@ class StripeCreateCourseAPIView(generics.GenericAPIView):
 
 
 class StripeCreateLessonAPIView(generics.GenericAPIView):
+    """Эндпоинт создания продукта"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
@@ -199,6 +202,7 @@ class StripeCreateLessonAPIView(generics.GenericAPIView):
 
 
 class StripeSetPriceCourseAPIView(generics.GenericAPIView):
+    """Эндпоинт создания цены"""
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
@@ -224,6 +228,7 @@ class StripeSetPriceCourseAPIView(generics.GenericAPIView):
 
 
 class StripeSetPriceLessonAPIView(generics.GenericAPIView):
+    """Эндпоинт создания цены"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
@@ -249,6 +254,7 @@ class StripeSetPriceLessonAPIView(generics.GenericAPIView):
 
 
 class StripePayCourseAPIView(generics.GenericAPIView):
+    """Эндпоинт создания платёжной сессии"""
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
@@ -281,6 +287,7 @@ class StripePayCourseAPIView(generics.GenericAPIView):
 
 
 class StripePayLessonAPIView(generics.GenericAPIView):
+    """Эндпоинт создания платёжной сессии"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
