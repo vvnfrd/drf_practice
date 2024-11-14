@@ -4,7 +4,8 @@ from rest_framework.response import Response
 import stripe
 from lms.models import Course, Lesson
 from lms.paginators import StudyPaginator
-from lms.services import stripe_create_product, stripe_create_price
+from lms.services import stripe_create_product, stripe_create_price, stripe_pay_session
+from users.models import Subscription
 from users.permissions import IsNotModerator, IsOwner
 from lms.serializers import CourseSerializer, LessonSerializer, CourseDetailSerializer, CourseDetailOwnerSerializer, \
     LessonOwnerSerializer
@@ -162,7 +163,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
 class StripeCreateCourseAPIView(generics.GenericAPIView):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsOwner]
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -181,16 +182,18 @@ class StripeCreateCourseAPIView(generics.GenericAPIView):
 class StripeCreateLessonAPIView(generics.GenericAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsOwner]
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.author == self.request.user:
-
-            return Response(stripe_create_product(
+            response = Response(stripe_create_product(
                 name=instance.title,
                 description=instance.description
             ))
+            instance.product_id = response.data['id']
+            instance.save()
+            return response
         else:
             return Response(data={"message": "You are not owner of this lesson"})
 
@@ -198,42 +201,111 @@ class StripeCreateLessonAPIView(generics.GenericAPIView):
 class StripeSetPriceCourseAPIView(generics.GenericAPIView):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsOwner]
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
         try:
             if instance.author == self.request.user:
                 usd_price = request.data['usd_price']
-                product_id = request.data['product_id']
-                stripe_create_price(
-                    usd_price=usd_price,
+                product_id = instance.product_id
+                response = Response(stripe_create_price(
+                    usd_price=int(usd_price) * 100,
                     product_id=product_id
-                )
-                return Response(data={"message": "The price has been set"})
+                ))
+                instance.price_id = response.data['id']
+                instance.usd_price = request.data['usd_price']
+                instance.save()
+                return response
             else:
-                return Response(data={"message": "The price has been set"})
+                return Response(data={"message": "You are not owner of this course"})
         except KeyError:
-            return Response(data={"usd_price": "Required field", "product_id": "Required field"})
+            return Response(data={"usd_price": "Required field"})
 
 
 class StripeSetPriceLessonAPIView(generics.GenericAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsOwner]
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
         try:
             if instance.author == self.request.user:
                 usd_price = request.data['usd_price']
-                product_id = request.data['product_id']
-                stripe_create_price(
-                    usd_price=usd_price,
+                product_id = instance.product_id
+                response = Response(stripe_create_price(
+                    usd_price=int(usd_price) * 100,
                     product_id=product_id
-                )
-                return Response(data={"message": "The price has been set"})
+                ))
+                instance.price_id = response.data['id']
+                instance.usd_price = request.data['usd_price']
+                instance.save()
+                return response
             else:
-                return Response(data={"message": "The price has been set"})
+                return Response(data={"message": "You are not owner of this course"})
         except KeyError:
-            return Response(data={"usd_price": "Required field", "product_id": "Required field"})
+            return Response(data={"usd_price": "Required field"})
+
+
+class StripePayCourseAPIView(generics.GenericAPIView):
+    serializer_class = CourseSerializer
+    queryset = Course.objects.all()
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author == self.request.user:
+            price_id = instance.price_id
+            response = Response(stripe_pay_session(price_id=price_id))
+            instance.pay_id = response.data['id']
+            instance.save()
+            if not Subscription.objects.filter(user=self.request.user).filter(course_id=instance).exists():
+                subscription = Subscription.objects.create(
+                    user=self.request.user,
+                    course_id=instance,
+                    status=False,
+                    pay_id=response.data['id'],
+                    pay_url=response.data["url"]
+                )
+            else:
+                subscription = Subscription.objects.filter(user=self.request.user).filter(course_id=instance)[0]
+                subscription.pay_id = response.data['id']
+                subscription.pay_url = response.data["url"]
+                subscription.save()
+
+            return Response(data=response.data["url"])
+        else:
+            return Response(data={"message": "You are not owner of this lesson"})
+
+
+
+class StripePayLessonAPIView(generics.GenericAPIView):
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.author == self.request.user:
+            price_id = instance.price_id
+            response = Response(stripe_pay_session(price_id=price_id))
+            instance.pay_id = response.data['id']
+            instance.save()
+            if not Subscription.objects.filter(user=self.request.user).filter(lesson_id=instance).exists():
+                subscription = Subscription.objects.create(
+                    user=self.request.user,
+                    lesson_id=instance,
+                    status=False,
+                    pay_id=response.data['id'],
+                    pay_url=response.data["url"]
+                )
+            else:
+                subscription = Subscription.objects.filter(user=self.request.user).filter(lesson_id=instance)[0]
+                subscription.pay_id = response.data['id']
+                subscription.pay_url = response.data["url"]
+                subscription.save()
+
+            return Response(data=response.data["url"])
+        else:
+            return Response(data={"message": "You are not owner of this lesson"})

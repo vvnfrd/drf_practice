@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from lms.apps import LmsConfig
 from lms.views import CourseViewSet, LessonCreateAPIView, LessonListAPIView, LessonRetrieveAPIView, LessonUpdateAPIView, \
     LessonDestroyAPIView, StripeCreateCourseAPIView, StripeCreateLessonAPIView, StripeSetPriceCourseAPIView, \
-    StripeSetPriceLessonAPIView
+    StripeSetPriceLessonAPIView, StripePayCourseAPIView, StripePayLessonAPIView
 
 app_name = LmsConfig.name
 
@@ -22,5 +22,6 @@ urlpatterns = [
     path('lesson/create_product/<int:pk>', StripeCreateLessonAPIView.as_view(), name='lesson-create-product'),
     path('courses/set_price/<int:pk>', StripeSetPriceCourseAPIView.as_view(), name='course-setprice-product'),
     path('lesson/set_price/<int:pk>', StripeSetPriceLessonAPIView.as_view(), name='lesson-setprice-product'),
-    path('lesson/set_price/<int:pk>', StripeSetPriceLessonAPIView.as_view(), name='lesson-setprice-product'),
+    path('courses/pay/<int:pk>', StripePayCourseAPIView.as_view(), name='course-pay-product'),
+    path('lesson/pay/<int:pk>', StripePayLessonAPIView.as_view(), name='lesson-pay-product'),
 ] + router.urls

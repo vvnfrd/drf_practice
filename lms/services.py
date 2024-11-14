@@ -12,9 +12,17 @@ def stripe_create_product(name, description):
     )
 
 def stripe_create_price(usd_price, product_id):
-    stripe.Price.create(
+
+    return stripe.Price.create(
         currency="usd",
         unit_amount=usd_price,
         recurring={"interval": "month"},
         product=product_id,
+    )
+
+def stripe_pay_session(price_id):
+    return stripe.checkout.Session.create(
+        success_url="https://example.com/success",
+        line_items=[{"price": price_id, "quantity": 2}],
+        mode="subscription",
     )

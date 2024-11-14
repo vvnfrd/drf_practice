@@ -10,6 +10,9 @@ class Course(models.Model):
     description = models.TextField(verbose_name='описание')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор', **NULLABLE)
     product_id = models.CharField(max_length=100, verbose_name='id продукта в stripe', **NULLABLE)
+    price_id = models.CharField(max_length=100, verbose_name='id цены в stripe', **NULLABLE)
+    pay_id = models.CharField(max_length=100, verbose_name='id сессии оплаты', **NULLABLE)
+    usd_price = models.IntegerField(verbose_name='цена в $', **NULLABLE)
 
     def __str__(self):
         return f'Курс {self.title}'
@@ -27,6 +30,9 @@ class Lesson(models.Model):
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс', **NULLABLE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='автор', **NULLABLE)
     product_id = models.CharField(max_length=100, verbose_name='id продукта в stripe', **NULLABLE)
+    price_id = models.CharField(max_length=100, verbose_name='id цены в stripe', **NULLABLE)
+    pay_id = models.CharField(max_length=100, verbose_name='id сессии оплаты', **NULLABLE)
+    usd_price = models.IntegerField(verbose_name='цена в $', **NULLABLE)
 
     def __str__(self):
         return f'Урок {self.title}'
