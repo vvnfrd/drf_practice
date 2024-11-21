@@ -44,8 +44,8 @@ class Payment(models.Model):
 
 class Subscription(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь', **NULLABLE)
-    course_id = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс', **NULLABLE)
-    lesson_id = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name='урок', **NULLABLE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс', **NULLABLE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name='урок', **NULLABLE)
     status = models.BooleanField(default=False, verbose_name='статус оплаты', **NULLABLE)
     pay_id = models.CharField(max_length=100, verbose_name='id сессии оплаты', **NULLABLE)
     pay_url = models.CharField(verbose_name='ссылка оплаты', **NULLABLE)

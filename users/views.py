@@ -1,9 +1,15 @@
+import datetime
+
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenViewBase
 
 from lms.models import Course
 from users.models import Payment, Subscription
@@ -83,3 +89,27 @@ class SubscriptionAPIView(generics.CreateAPIView, generics.ListAPIView):
             return Subscription.objects.all()
         else:
             return Subscription.objects.filter(user=self.request.user)
+
+
+    """Ниже оформил обновления last_login после каждого запроса токена"""
+
+class TokenViewBaseEdited(TokenViewBase):
+
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            user = User.objects.get(email=request.data['email'])
+            user.last_login = datetime.datetime.now(datetime.timezone.utc)
+            user.save()
+
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+class TokenObtainPairViewEdited(TokenViewBaseEdited):
+
+    _serializer_class = api_settings.TOKEN_OBTAIN_SERIALIZER

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'django_dump_load_utf8',
+    'django_celery_beat',
 
     'users',
     'lms',
@@ -115,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Novosibirsk'
 
 USE_I18N = True
 
@@ -147,3 +148,24 @@ REST_FRAMEWORK = {
 }
 
 STRIPE_API_KEY = 'sk_test_51QJawyGThucpgbejbCSDzTWi1mQNLevaRameij89Cw84lSZzDNJufUCUmEF4uOIZCzVtrD0pkAkxJnTDsC3Q4ik600PAK8g57b'
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_TIMEZONE = "Asia/Novosibirsk"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BEAT_SCHEDULE = {
+    'user_turn_is_active': {
+        'task': 'users.tasks.user_turn_is_active',  # Путь к задаче
+        'schedule': timedelta(minutes=5),  # Расписание выполнения задачи (например, каждые 10 минут)
+    },
+}
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'zzzetmarley@gmail.com'
+EMAIL_HOST_PASSWORD = 'gbso edxe xtex zoqo'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

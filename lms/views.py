@@ -2,6 +2,8 @@ from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 import stripe
+
+import lms
 from lms.models import Course, Lesson
 from lms.paginators import StudyPaginator
 from lms.services import stripe_create_product, stripe_create_price, stripe_pay_session
@@ -9,6 +11,7 @@ from users.models import Subscription
 from users.permissions import IsNotModerator, IsOwner
 from lms.serializers import CourseSerializer, LessonSerializer, CourseDetailSerializer, CourseDetailOwnerSerializer, \
     LessonOwnerSerializer
+from users.tasks import send_mailing
 
 """CRUD Course"""
 
@@ -46,6 +49,9 @@ class CourseViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        send_mailing(instance, 'Course')
+
+
 
         if getattr(instance, '_prefetched_objects_cache', None):
             # If 'prefetch_related' has been applied to a queryset, we need to
@@ -150,6 +156,16 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
+
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        send_mailing(instance, 'Lesson')
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        send_mailing(instance, 'Lesson')
+        return self.partial_update(request, *args, **kwargs)
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
@@ -257,32 +273,33 @@ class StripePayCourseAPIView(generics.GenericAPIView):
     """Эндпоинт создания платёжной сессии"""
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.author == self.request.user:
+        # if instance.author == self.request.user:
+        if True:
             price_id = instance.price_id
             response = Response(stripe_pay_session(price_id=price_id))
             instance.pay_id = response.data['id']
             instance.save()
-            if not Subscription.objects.filter(user=self.request.user).filter(course_id=instance).exists():
+            if not Subscription.objects.filter(user=self.request.user).filter(course=instance).exists():
                 subscription = Subscription.objects.create(
                     user=self.request.user,
-                    course_id=instance,
+                    course=instance,
                     status=False,
                     pay_id=response.data['id'],
                     pay_url=response.data["url"]
                 )
             else:
-                subscription = Subscription.objects.filter(user=self.request.user).filter(course_id=instance)[0]
+                subscription = Subscription.objects.filter(user=self.request.user).filter(course=instance)[0]
                 subscription.pay_id = response.data['id']
                 subscription.pay_url = response.data["url"]
                 subscription.save()
 
             return Response(data=response.data["url"])
-        else:
-            return Response(data={"message": "You are not owner of this lesson"})
+        # else:
+        #     return Response(data={"message": "You are not owner of this lesson"})
 
 
 
@@ -290,29 +307,30 @@ class StripePayLessonAPIView(generics.GenericAPIView):
     """Эндпоинт создания платёжной сессии"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.author == self.request.user:
+        # if instance.author == self.request.user:
+        if True:
             price_id = instance.price_id
             response = Response(stripe_pay_session(price_id=price_id))
             instance.pay_id = response.data['id']
             instance.save()
-            if not Subscription.objects.filter(user=self.request.user).filter(lesson_id=instance).exists():
+            if not Subscription.objects.filter(user=self.request.user).filter(lesson=instance).exists():
                 subscription = Subscription.objects.create(
                     user=self.request.user,
-                    lesson_id=instance,
+                    lesson=instance,
                     status=False,
                     pay_id=response.data['id'],
                     pay_url=response.data["url"]
                 )
             else:
-                subscription = Subscription.objects.filter(user=self.request.user).filter(lesson_id=instance)[0]
+                subscription = Subscription.objects.filter(user=self.request.user).filter(lesson=instance)[0]
                 subscription.pay_id = response.data['id']
                 subscription.pay_url = response.data["url"]
                 subscription.save()
 
             return Response(data=response.data["url"])
-        else:
-            return Response(data={"message": "You are not owner of this lesson"})
+        # else:
+        #     return Response(data={"message": "You are not owner of this lesson"})
